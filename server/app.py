@@ -11,8 +11,8 @@ from server.image_generation.image_generator import create_image_from_story
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
-MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
-allowed_extensions = {'mp3', 'wav', 'mp4', 'avi'}
+ALLOWED_EXTENSIONS = {'mp3', 'wav', 'mp4', 'm4a', 'avi'}  # Example allowed extensions
+MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB  # Example max file size (10 MB)
 
 
 @app.route('/upload_audio', methods=['POST'])
@@ -26,7 +26,7 @@ def upload_audio_file():
         if audio_file.filename == '':
             return jsonify({'error': 'No selected audio file'}), 400
 
-        if audio_file.filename.split('.')[-1] not in allowed_extensions:
+        if audio_file.filename.split('.')[-1] not in ALLOWED_EXTENSIONS:
             return jsonify({'error': 'Invalid file format. Only audio and video files are allowed.'}), 400
 
         if audio_file.content_length > MAX_FILE_SIZE:
@@ -34,10 +34,11 @@ def upload_audio_file():
 
         # Replace 'audio_uploads' with your desired directory for audio files
         audio_file.save('./' + audio_file.filename)
-        summary = summarise_audio(audio_file)
+        # summary = summarise_audio(audio_file)
+
         print('Audio file saved successfully')
 
-        image_prompts = turn_summary_into_image_prompts(summary)
+        image_prompts = turn_summary_into_image_prompts(test_summary)
 
         story = generate_images(image_prompts)
 
@@ -47,9 +48,8 @@ def upload_audio_file():
         clear_directory('./Audio_files')
         return jsonify({'user_stories': story}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
+        return jsonify({'error': str(e)}), 500   
+    
 def summarise_audio(audio_file):
     try:
         refactor_audio('./' + audio_file.filename, 'Audio_files')
@@ -60,6 +60,13 @@ def summarise_audio(audio_file):
         return summary
     except Exception as e:
         return str(e)
+    
+def turn_summary_into_image_prompts(test_summary):
+    print("Turning summary into image prompts")
+    image_prompts = {}
+    for i, prompt in enumerate(test_summary):
+        image_prompts[f'prompt_{i+1}'] = prompt
+    return image_prompts
 
 def generate_images(image_prompts):
     try:
@@ -77,64 +84,18 @@ def merge_urls_with_prompts(prompts, urls):
         story.append({'prompt': prompt, 'url': urls[i].url})
     return story
 
-def turn_summary_into_image_prompts(summary):
-    print("Turning summary into image prompts")
-
-
-def turn_summary_into_story(summary):
-    try:
-        user_stories = []
-        user_story = {}
-        acceptance_criteria = []
-
-        for line in summary.split("\n"):
-            line = line.lstrip()  # Remove leading whitespace
-            if line.startswith("id:"):
-                if user_story:
-                    user_story["acceptance_criteria"] = acceptance_criteria
-                    user_stories.append(user_story)
-                user_story = {"id": int(line.replace("id:", "").strip())}
-                acceptance_criteria = []
-            elif line.startswith("Title:"):
-                user_story["title"] = line.replace("Title:", "").strip()
-            elif line.startswith("Description:"):
-                user_story["description"] = line.replace("Description:", "").strip()
-            elif line.startswith("-"):
-                acceptance_criteria.append(line.strip("- ").strip())
-
-        if user_story:
-            user_story["acceptance_criteria"] = acceptance_criteria
-            user_stories.append(user_story)
-
-        return user_stories
-
-    except Exception as e:
-        print(f"An error occurred in turn_summary_into_story: {e}")
-        return None
-
-
 def clear_directory(directory_path):
     files = glob.glob(f'{directory_path}/*')
     for file in files:
         os.remove(file)
 
-
-prompts = {
-    "prompt_1": "Humpty Dumpty, a smooth, round egg with a cheerful smile...",
-    "prompt_2": "Humpty Dumpty wrapped in a vibrant red calico cloth...",
-    "prompt_3": "Humpty Dumpty emerges from the kettle, transformed...",
-    "prompt_4": "Humpty Dumpty, now dressed as a lively circus clown...",
-    "prompt_5": "Humpty Dumpty traveling through a lively landscape..."
-}
-
-urls = [
-    {'url': 'http://example.com/image1.png'},
-    {'url': 'http://example.com/image2.png'},
-    {'url': 'http://example.com/image3.png'},
-    {'url': 'http://example.com/image4.png'},
-    {'url': 'http://example.com/image5.png'}
-]
-
+test_summary = """
+"prompt_1": "Humpty Dumpty, a smooth, round egg with a cheerful smile, stands nervously in front of a wise, kind Black Hen in a cozy barn. The Hen looks thoughtful as she gives advice, with hay scattered around and sunlight streaming through the wooden beams.",
+"prompt_2": "Humpty Dumpty wrapped in a vibrant red calico cloth, sitting happily in a large copper kettle of boiling water, steam rising in a warm farmhouse kitchen. The Farmer’s Wife, wearing an apron, watches with a kind smile near a wooden hearth.",
+"prompt_3": "Humpty Dumpty emerges from the kettle, transformed with bright red spots across his smooth, shiny shell, looking vibrant and confident. The kitchen glows warmly, and the Farmer’s Wife claps her hands in delight as Humpty jumps with energy.",
+"prompt_4": "Humpty Dumpty, now dressed as a lively circus clown with colorful spots, performs tricks on a tightrope in a big-top tent. Children laugh and clap while he balances effortlessly, surrounded by bright lights and festive decorations.",
+"prompt_5": "Humpty Dumpty traveling through a lively landscape, carrying a banjo. He walks through a colorful countryside, waves to villagers, and spreads cheer under a bright blue sky with rolling hills in the distance."
+"""
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
