@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+
+.carousel-parent {
+  position: relative;
+  font-family: Roboto Mono;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10rem;
+}
+.actions-parent{
+  position: absolute;
+  top: 0;
+  padding-top: 10vh;
+  height: 6vh;
+  width: 17vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.text-item {
+ 
+  padding: 3rem;
+  max-height: calc(100vh - 15vh - 6rem);
+  width: 40vw;
+  background-color: rgb(247, 248, 250);
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+.edit-text-item{
+  margin: 0 20px;
+  padding: 3rem;
+  max-height: calc(100vh - 15vh - 6rem);
+  width: 40rem;
+  background-color: rgb(255, 255, 255);
+  border-radius: 10px;
+  border: solid 2px #333;
+  transition: box-shadow 0.3s ease;
+}
+
+.text-item:hover {
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+  background-color: white;
+  cursor: pointer;
+}
+
+#card-title{
+  font-size: 1.1rem;
+  color: #333;
+  padding-bottom: 1rem;
+  border-bottom: solid 2px rgb(229, 229, 229);
+}
+#card-description{
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  padding-top: 0.5rem;
+  color: #333;
+  border-bottom: solid 2px rgb(229, 229, 229);
+}
+.card-criteria{
+  text-align: left;
+  font-weight: bold;
+  margin-bottom: 10px; 
+  color: #333;
+}
+.card-criteria ul{
+  font-weight: 400;
+  list-style-type:decimal;
+}
+
+.left-arrow,
+.right-arrow {
+  cursor: pointer;
+  margin: 2vw;
+  font-size: 3em;
+  color: #888;
+  transition: color 0.3s ease;
+}
+
+.left-arrow:hover,
+.right-arrow:hover {
+  color: #333;
+}
+.footer {
+  position: absolute;
+  bottom: 0; /* Ensure the footer sticks to the bottom */
+  left: 0; /* Align with the left edge of the parent */
+  width: 100%; /* Occupy full width */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.download-all-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s ease;
+
+}
+
+.download-button {
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.download-button:hover,
+.download-all-button:hover {
+  background-color: #0056b3;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center; 
+}
+
+.dot {
+  height: 10px;
+  width: 10px;
+  margin: 0 5px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+.dot.active {
+  background-color: #007bff;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media only screen and (max-height: 680px) and (max-width: 500px) {
+  .carousel-parent {
+    font-size: 0.7rem;
+  }
+  #card-title{
+    font-size: 0.9rem;
+    color: #333;
+    padding-bottom: 1rem;
+    border-bottom: solid 2px rgb(229, 229, 229);
+  }
+}
