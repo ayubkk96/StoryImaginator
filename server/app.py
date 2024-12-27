@@ -7,6 +7,7 @@ from audio_processing.transcribe_audio import transcribe_audio
 from audio_processing.trim_audio import refactor_audio
 from openai_integration.openai_client import create_openai_client
 from openai_integration.summarisation import (abstract_summary_extraction)
+from server.image_generation.image_generator import create_image_from_story
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -36,12 +37,15 @@ def upload_audio_file():
         summary = summarise_audio(audio_file)
         print('Audio file saved successfully')
 
-        user_stories = turn_summary_into_story(summary)
+        image_prompts = turn_summary_into_image_prompts(summary)
 
-        if user_stories is None:
+        story = generate_images(image_prompts)
+
+
+        if story is None:
             return jsonify({'error': 'An error occurred while turning the summary into a story'}), 500
         clear_directory('./Audio_files')
-        return jsonify({'user_stories': user_stories}), 200
+        return jsonify({'user_stories': story}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -56,6 +60,25 @@ def summarise_audio(audio_file):
         return summary
     except Exception as e:
         return str(e)
+
+def generate_images(image_prompts):
+    try:
+        client = create_openai_client()
+        urls = create_image_from_story(client, image_prompts)
+        story = merge_urls_with_prompts(image_prompts, urls)
+        print(story)
+        return story
+    except Exception as e:
+        return str(e)
+
+def merge_urls_with_prompts(prompts, urls):
+    story = []
+    for i, prompt in prompts.items():
+        story.append({'prompt': prompt, 'url': urls[i].url})
+    return story
+
+def turn_summary_into_image_prompts(summary):
+    print("Turning summary into image prompts")
 
 
 def turn_summary_into_story(summary):
@@ -96,64 +119,22 @@ def clear_directory(directory_path):
         os.remove(file)
 
 
-test_summary = """
-        id: 1
-        Title: Implement Caching Mechanism for Improved Performance
-        Description: As a developer, I want to implement a caching mechanism within our web application. This will allow us to reduce page load times and enhance the overall user experience.
-        Acceptance Criteria:
-        - When a user accesses a frequently requested page, the system should retrieve data from the cache rather than making a fresh database query.
-        - Cache expiration should be configurable, allowing us to balance data freshness with performance gains.
-        - Automated tests should verify that cached content remains consistent and up-to-date.
-        id: 2
-        Title: Navigate to australia like a chicken nugget
-        Description: As a chicken nugget, I want to navigate to Australia so that I can experience the land down under.
-        Acceptance Criteria:
-        - The chicken nugget must be able to travel across the ocean.
-        - The chicken nugget must be able to survive the journey.
-        - The chicken nugget must be able to explore various regions of Australia.
-        id: 3
-        Title: Order a pizza online
-        Description: As a pizza lover, I want to order a pizza online so that I can enjoy a delicious meal without leaving my home.
-        Acceptance Criteria:
-        - The online ordering system should allow me to choose from a variety of toppings and crust styles.
-        - The system should provide an estimated delivery time based on my location.
-        - I should receive a confirmation email with the order details after completing the purchase.
-        id: 4
-        Title: Implement a chatbot for customer support
-        Description: As a customer support representative, I want to implement a chatbot on our website to assist users with common questions and issues.
-        Acceptance Criteria:
-        - The chatbot should be able to answer frequently asked questions about our products and services.
-        - The chatbot should provide users with relevant information based on their input.
-        - The chatbot should escalate complex issues to a human representative when necessary.
-        id: 5
-        Title: Create a mobile app for tracking fitness goals
-        Description: As a fitness enthusiast, I want to create a mobile app that allows users to set and track their fitness goals.
-        Acceptance Criteria:
-        - Users should be able to input their fitness goals and track their progress over time.
-        - The app should provide motivational messages and reminders to help users stay on track.
-        - Users should be able to share their progress with friends and social media.
-        id: 6
-        Title: Implement a recommendation engine for e-commerce platform
-        Description: As an e-commerce platform owner, I want to implement a recommendation engine that suggests products to users based on their browsing history and preferences.
-        Acceptance Criteria:
-        - The recommendation engine should analyze user behavior to generate personalized product recommendations.
-        - Users should be able to provide feedback on the recommendations to improve future suggestions.
-        - The recommendation engine should be scalable and able to handle a large number of users and products.
-        id: 7
-        Title: Develop a feature for real-time collaboration
-        Description: As a software developer, I want to develop a feature that allows multiple users to collaborate on a document in real-time.
-        Acceptance Criteria:
-        - Users should be able to see changes made by other collaborators in real-time.
-        - The feature should support multiple users editing the document simultaneously.
-        - The system should provide a revision history to track changes and allow users to revert to previous versions.
-        id: 8
-        Title: Create a dashboard for monitoring system performance
-        Description: As a system administrator, I want to create a dashboard that displays real-time performance metrics for our servers and applications.
-        Acceptance Criteria:
-        - The dashboard should provide an overview of CPU usage, memory consumption, and network traffic.
-        - Users should be able to set up alerts for performance thresholds and receive notifications when thresholds are exceeded.
-        - The dashboard should support customization to display specific metrics based on user preferences.
-        """
+prompts = {
+    "prompt_1": "Humpty Dumpty, a smooth, round egg with a cheerful smile...",
+    "prompt_2": "Humpty Dumpty wrapped in a vibrant red calico cloth...",
+    "prompt_3": "Humpty Dumpty emerges from the kettle, transformed...",
+    "prompt_4": "Humpty Dumpty, now dressed as a lively circus clown...",
+    "prompt_5": "Humpty Dumpty traveling through a lively landscape..."
+}
+
+urls = [
+    {'url': 'http://example.com/image1.png'},
+    {'url': 'http://example.com/image2.png'},
+    {'url': 'http://example.com/image3.png'},
+    {'url': 'http://example.com/image4.png'},
+    {'url': 'http://example.com/image5.png'}
+]
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)

@@ -2,15 +2,18 @@ from openai import OpenAI
 client = OpenAI()
 
 def create_image_from_story(client, humpty_prompts):
-    response = client.images.generate(
-        model="dall-e-3",
-        prompt="Make this image in cartoon style for children: " + humpty_prompts["prompt_5"],
-        size="1024x1024",
-        quality="standard",
-        n=1
-    )
-    return response.data
-
+    responses = []
+    for prompt in humpty_prompts.values():  
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt="Make this image in cartoon style for children: " + prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1
+        )
+        responses.append(response.data)
+    return responses
+    
 humpty_prompts = {
     "prompt_1": (
         "Humpty Dumpty, a smooth, round egg with a cheerful smile, stands nervously in front of a wise, kind Black Hen "
