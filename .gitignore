@@ -38,3 +38,7 @@ node_modules/
 /dist/
 /dist-ssr/
 *.local
+
+# Ignore requirements.txt and todo.txt
+requirements.txt
+todolist.txt
