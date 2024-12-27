@@ -7,7 +7,7 @@ from audio_processing.transcribe_audio import transcribe_audio
 from audio_processing.trim_audio import refactor_audio
 from openai_integration.openai_client import create_openai_client
 from openai_integration.summarisation import (abstract_summary_extraction)
-from server.image_generation.image_generator import create_image_from_story
+from image_generation.image_generator import create_image_from_story
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -39,14 +39,13 @@ def upload_audio_file():
         print('Audio file saved successfully')
 
         image_prompts = turn_summary_into_image_prompts(test_summary)
-
-        story = generate_images(image_prompts)
-
+        cleaned_prompts = clean_prompts(image_prompts)
+        story = generate_images(cleaned_prompts)
 
         if story is None:
             return jsonify({'error': 'An error occurred while turning the summary into a story'}), 500
         clear_directory('./Audio_files')
-        return jsonify({'user_stories': story}), 200
+        return jsonify(story), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500   
     
@@ -62,26 +61,32 @@ def summarise_audio(audio_file):
         return str(e)
     
 def turn_summary_into_image_prompts(test_summary):
-    print("Turning summary into image prompts")
-    image_prompts = {}
-    for i, prompt in enumerate(test_summary):
-        image_prompts[f'prompt_{i+1}'] = prompt
+    prompts_list = test_summary.strip().split('\n')
+    image_prompts = [prompt.strip() for prompt in prompts_list]
     return image_prompts
+
+def clean_prompts(image_prompts):
+    # List comprehension to clean up the prompts
+    cleaned_prompts = [item.split('": "', 1)[1].strip('",') for item in image_prompts]
+    return cleaned_prompts
 
 def generate_images(image_prompts):
     try:
         client = create_openai_client()
         urls = create_image_from_story(client, image_prompts)
         story = merge_urls_with_prompts(image_prompts, urls)
-        print(story)
+        #print(story)
         return story
     except Exception as e:
         return str(e)
 
 def merge_urls_with_prompts(prompts, urls):
     story = []
-    for i, prompt in prompts.items():
-        story.append({'prompt': prompt, 'url': urls[i].url})
+    for index, prompt in enumerate(prompts):
+        try:
+            story.append({'prompt': prompt, 'url': urls[index]['url']})
+        except (IndexError, KeyError) as e:
+            print(f"Error processing index {index}: {e}")
     return story
 
 def clear_directory(directory_path):
@@ -90,11 +95,11 @@ def clear_directory(directory_path):
         os.remove(file)
 
 test_summary = """
-"prompt_1": "Humpty Dumpty, a smooth, round egg with a cheerful smile, stands nervously in front of a wise, kind Black Hen in a cozy barn. The Hen looks thoughtful as she gives advice, with hay scattered around and sunlight streaming through the wooden beams.",
-"prompt_2": "Humpty Dumpty wrapped in a vibrant red calico cloth, sitting happily in a large copper kettle of boiling water, steam rising in a warm farmhouse kitchen. The Farmer’s Wife, wearing an apron, watches with a kind smile near a wooden hearth.",
-"prompt_3": "Humpty Dumpty emerges from the kettle, transformed with bright red spots across his smooth, shiny shell, looking vibrant and confident. The kitchen glows warmly, and the Farmer’s Wife claps her hands in delight as Humpty jumps with energy.",
-"prompt_4": "Humpty Dumpty, now dressed as a lively circus clown with colorful spots, performs tricks on a tightrope in a big-top tent. Children laugh and clap while he balances effortlessly, surrounded by bright lights and festive decorations.",
-"prompt_5": "Humpty Dumpty traveling through a lively landscape, carrying a banjo. He walks through a colorful countryside, waves to villagers, and spreads cheer under a bright blue sky with rolling hills in the distance."
+"prompt_1": "Dongle, a smooth, round egg with a cheerful smile, stands nervously in front of a wise, kind Black Hen in a cozy barn. The Hen looks thoughtful as she gives advice, with hay scattered around and sunlight streaming through the wooden beams.",
+"prompt_2": "Dongle wrapped in a vibrant red calico cloth, sitting happily in a large copper kettle of boiling water, steam rising in a warm farmhouse kitchen. The Farmer’s Wife, wearing an apron, watches with a kind smile near a wooden hearth.",
+"prompt_3": "Dongle emerges from the kettle, transformed with bright red spots across his smooth, shiny shell, looking vibrant and confident. The kitchen glows warmly, and the Farmer’s Wife claps her hands in delight as Humpty jumps with energy.",
+"prompt_4": "Dongle, now dressed as a lively circus clown with colorful spots, performs tricks on a tightrope in a big-top tent. Children laugh and clap while he balances effortlessly, surrounded by bright lights and festive decorations.",
+"prompt_5": "Dongle traveling through a lively landscape, carrying a banjo. He walks through a colorful countryside, waves to villagers, and spreads cheer under a bright blue sky with rolling hills in the distance."
 """
 
 if __name__ == '__main__':

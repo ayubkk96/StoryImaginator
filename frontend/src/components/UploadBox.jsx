@@ -12,6 +12,7 @@ const UploadBox = ({ setUploadComplete, setResponseData, setProgress, progress }
       uploadFile(selectedFile);
     }
   };
+  
   const uploadFile = (fileToUpload) => {
     let progress = 0;
     const interval = setInterval(() => {

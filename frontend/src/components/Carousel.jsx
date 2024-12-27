@@ -8,13 +8,13 @@ const Carousel = ({ data }) => {
   const [editMode, setEditMode] = useState(false);
 
   const handleNext = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % data.user_stories.length);
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % data.length);
   };
 
   const handlePrev = () => {
     setCurrentIndex(
       (prevIndex) =>
-        (prevIndex - 1 + data.user_stories.length) % data.user_stories.length
+        (prevIndex - 1 + data.length) % data.length
     );
   };
 
@@ -24,33 +24,33 @@ const Carousel = ({ data }) => {
 
   const handleDownload = () => {
     const doc = new jsPDF();
-    const story = data.user_stories[currentIndex];
-    const storyText = `Title: ${story.title}\nDescription: ${
-      story.description
-    }\nAcceptance Criteria:\n${story.acceptance_criteria
+    const story = data[currentIndex];
+    const storyText = `Title: ${story.currentIndex}\nPrompt: ${
+      story.prompt
+    }\nurl:\n${story.url
       .map((criteria) => "\u2022 " + criteria)
       .join("\n")}`;
     const lines = doc.splitTextToSize(storyText, 180);
     doc.text(lines, 10, 10);
 
     doc.setProperties({
-      title: story.title,
+      title: story.currentIndex,
     });
 
-    doc.save(`${story.title}.pdf`);
+    doc.save(`${story.currentIndex}.pdf`);
   };
 
   const handleDownloadAll = () => {
     const doc = new jsPDF();
     data.user_stories.forEach((story, index) => {
-      const storyText = `Title: ${story.title}\nDescription: ${
-        story.description
-      }\nAcceptance Criteria:\n${story.acceptance_criteria
+      const storyText = `Title: ${story.index}\nPrompt: ${
+        story.prompt
+      }\nurl:\n${story.url
         .map((criteria) => "\u2022 " + criteria)
         .join("\n")}`;
       const lines = doc.splitTextToSize(storyText, 180);
       doc.text(lines, 10, 10);
-      if (index < data.user_stories.length - 1) {
+      if (index < data.length - 1) {
         doc.addPage();
       }
     });
@@ -77,26 +77,16 @@ const Carousel = ({ data }) => {
         &#8592;
       </div>
       <div className={editMode ? "edit-text-item" : "text-item"}>
-        <div key={data.user_stories[currentIndex].id}>
+        <div key={data[currentIndex]}>
           <h2 id="card-title">
             <>
-              <b>Title:</b> {data.user_stories[currentIndex].title}
+              <b></b> {data[currentIndex].prompt}
             </>
           </h2>
 
           <p id="card-description">
-            {data.user_stories[currentIndex].description}
+          <b></b>   <img src={data[currentIndex].url} alt="cat" />
           </p>
-          <div className="card-criteria">
-            Acceptance criteria
-            <ul>
-              {data.user_stories[currentIndex].acceptance_criteria.map(
-                (criteria, index) => (
-                  <li key={index}> {criteria}</li>
-                )
-              )}
-            </ul>
-          </div>
         </div>
       </div>
       <div className="right-arrow" onClick={handleNext}>
@@ -104,7 +94,7 @@ const Carousel = ({ data }) => {
       </div>
       <div className="footer">
         <div className="pagination">
-          {data.user_stories.map((_, index) => (
+          {data.map((_, index) => (
             <span
               key={index}
               className={`dot ${index === currentIndex ? "active" : ""}`}
